@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="createZip" name="GoProController_Build">
+    <import file="build.xml"/>
+    
+	<property name="buildTools" value="22.0.1" />
+	
+	<available file="local.properties" property="exists.local.properties" />
+    <fail message="You need to create the file 'local.properties' by running 'android update project -p .' here."
+          unless="exists.local.properties" />
+    <loadproperties srcFile="local.properties" />
+
+    <!-- Convert this project's .class files and libs into .dex files. -->
+	<target name="createJar" depends="build">
+		<exec executable="${sdk.dir}/build-tools/${buildTools}/dx.bat">
+			<arg value="--dex" />
+			<arg value="--output=./plugin/GoProController.jar" />
+			<arg value="--verbose" />
+			<arg path="./bin/classes" />
+			<arg path="./libs" />
+		</exec>
+	</target>
+
+	<!-- Zip up the plugin files -->
+	<target name="createZip" depends="createJar">
+		<zip destfile="./plugin/GoProController.zip"
+	       basedir="./plugin"
+	       excludes="GoProController.zip" />
+	</target>
+
+</project>

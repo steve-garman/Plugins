@@ -1,0 +1,582 @@
+
+<!DOCTYPE html> 
+<html>
+
+<head>
+	<title>GoProController</title>
+</head> 
+
+<body>
+
+<div data-role="page" data-theme="a">
+
+	<div data-role="header" data-position="fixed">
+		<a href='#' class='ui-btn-left' data-icon='arrow-l' data-theme="c" onclick="history.back(); return false">Back</a> 
+		<h1>GoProController</h1>
+	</div><!-- /header -->
+
+	<div data-role="content">
+
+		<div style="text-align:center">
+			<img src="GoProController.png"/>
+		</div>
+		
+		<p>The GoProController plugin enables remote control of GoPro cameras from DroidScript apps. With this plugin, you can control the camera shutter and change the cameras options.</p>
+
+		<p>GoProController currently supports the GoPro HERO3 range of cameras and HERO2 cameras with the Wifi BacPac.</p>
+
+		<p><i><b>NOTE:</b> GoProController uses an unofficial GoPro API which, although unlikely, may be changed in future firmware updates, which in turn could affect the functionality of this plugin.</i></p>
+
+		<h3>Getting Started</h3>
+
+		<p>Before using GoProController, please ensure you have the latest firmware installed on your GoPro camera (see <a id="extLink" href="http://gopro.com/update" target="_blank">gopro.com/update</a>).</p>
+
+		<p>To control the GoPro remotely, you must connect your Android device to the GoPro's Wifi hotspot.  If you have used the official GoPro Android app, you will be familiar with this already.  Follow these steps to get connected:</p>
+
+		<ol type="1">
+		  <li>Power on your camera.</li>
+		  <li>Press the Wifi button on the side of the camera or Wifi BacPac to turn on the camera's Wifi hotspot.</li>
+		  <li>In your Android device's Wifi Network settings, connect to the camera's Wifi network.</li>
+		</ol>
+
+		<p>For connection troubleshooting, see <a id="extLink" href="http://gopro.com/support/gopro-app-support" target="_blank">gopro.com/support</a></p>
+		
+		<h3>Using the GoProController Plugin</h3>
+
+		<p>In order to use GoProController, you must first load the plugin at the top of your script 
+		using the <b>LoadPlugin</b> method like this:</p>
+		
+		<div class="samp">&nbsp;app.LoadPlugin( "GoProController" );</div>
+		
+		<p>Then you can create an instance of the plugin object when you need it like this:</p>
+		
+		<div class="samp">&nbsp;gopro = app.CreateObject( "GoProController" );</div>
+		  
+		<p>To establish a connection to the GoPro, call the <b>Connect</b> method passing in the IP address of the GoPro, which by default is 10.5.5.9:</p>
+
+		<div class="samp">&nbsp;gopro.Connect( "10.5.5.9" );</div>
+
+		<p>If successful, the <b>OnConnect</b> callback will be called.  If the GoPro could not be found the <b>OnError</b> callback will be called with <i>"NotFound"</i> as the error.  These callbacks can be set using the <b>SetOnConnect</b> and <b>SetOnError</b> methods.</p>
+		
+		<div data-role="collapsible" data-collapsed="true"  data-mini="true" data-theme="a" data-content-theme="b">
+			<h3>Example - Connect To GoPro</h3>
+			<div id="examp1" style="font-size:70%">
+				app.LoadPlugin( "GoProController" );<br>
+				<br>
+				function OnStart()<br>
+				{<br>
+				 &nbsp;&nbsp;lay = app.CreateLayout( "Linear", "VCenter,FillXY" );<br><br>
+				 &nbsp;&nbsp;btn = app.CreateButton( "Connect" );<br>				
+				 &nbsp;&nbsp;btn.SetOnTouch( Connect );<br>
+				 &nbsp;&nbsp;lay.AddChild( btn );<br>
+				 <br>
+				 &nbsp;&nbsp;app.AddLayout( lay );<br>
+				 <br>
+				 &nbsp;&nbsp;gopro = app.CreateObject( "GoProController" );<br>
+				 &nbsp;&nbsp;gopro.SetOnConnect(gopro_OnConnect);<br>
+    			 &nbsp;&nbsp;gopro.SetOnError(gopro_OnError);<br>
+				}<br>
+				<br>
+				function Connect()<br>
+				{<br>
+				&nbsp;&nbsp;app.ShowProgress("Connecting...");<br>
+				&nbsp;&nbsp;gopro.Connect( "10.5.5.9" );<br>
+				}<br><br>
+				function gopro_OnConnect()<br>
+				{<br>
+				&nbsp;&nbsp;app.HideProgress();<br>
+				&nbsp;&nbsp;app.ShowPopup( "Connected!" );<br>
+				}<br><br>
+				function gopro_OnError( error )<br>
+				{<br>
+				&nbsp;&nbsp;app.HideProgress();<br>
+				&nbsp;&nbsp;app.ShowPopup( "GoPro not found. Make sure you connect to the GoPro Wifi hotspot." );<br>
+				}		
+			</div>
+			<div name="divCopy" align="right">
+			<a href="#" data-role="button" data-mini="true" data-inline="true" onclick="copy(examp1)">Copy All</a>
+			<a href="#" data-role="button" data-mini="true" data-inline="true" onclick="demo(examp1)">&nbsp;&nbsp;&nbsp;Run&nbsp;&nbsp;&nbsp;</a>
+			</div>
+		</div>
+
+		<p>When you are finished with the GoPro, call the <b>Disconnect</b> method to close the connection with the GoPro:</p>
+
+		<div class="samp">&nbsp;gopro.Disconnect();</div>
+		
+		<h3>Recording Video and Taking Photos</h3>
+
+		<p>Depending on which mode the camera is in, the following methods will start/stop recording video, take a photo or photo burst, or start/stop timelapse recording:</p>
+
+		<div class="samp">
+		&nbsp;gopro.StartShutter();<br>
+		&nbsp;gopro.StopShutter();
+		</div>
+
+		<p>Note that if the camera is in Photo or Burst mode, StopShutter has no effect.</p>
+		
+		<div data-role="collapsible" data-collapsed="true"  data-mini="true" data-theme="a" data-content-theme="b">
+			<h3>Example - Start/Stop Shutter</h3>
+			<div id="examp2" style="font-size:70%">
+				app.LoadPlugin( "GoProController" );<br>
+				<br>
+				function OnStart()<br>
+				{<br>
+				 &nbsp;&nbsp;lay = app.CreateLayout( "Linear", "VCenter,FillXY" );<br><br>
+				 &nbsp;&nbsp;btnStart = app.CreateButton( "Start Shutter" );<br>				
+				 &nbsp;&nbsp;btnStart.SetOnTouch( Start );<br>
+				 &nbsp;&nbsp;lay.AddChild( btnStart );<br><br>
+				 &nbsp;&nbsp;btnStop = app.CreateButton( "Stop Shutter" );<br>				
+				 &nbsp;&nbsp;btnStop.SetOnTouch( Stop );<br>
+				 &nbsp;&nbsp;lay.AddChild( btnStop );<br>
+				 <br>
+				 &nbsp;&nbsp;app.AddLayout( lay );<br>
+				 <br>
+				 &nbsp;&nbsp;gopro = app.CreateObject( "GoProController" );<br>
+				 &nbsp;&nbsp;gopro.Connect( "10.5.5.9" );<br>
+				}<br>
+				<br>
+				function Start()<br>
+				{<br>
+				&nbsp;&nbsp;gopro.StartShutter();<br>
+				}<br><br>
+				function Stop()<br>
+				{<br>
+				&nbsp;&nbsp;gopro.StopShutter();<br>
+				}
+			</div>
+			<div name="divCopy" align="right">
+			<a href="#" data-role="button" data-mini="true" data-inline="true" onclick="copy(examp2)">Copy All</a>
+			<a href="#" data-role="button" data-mini="true" data-inline="true" onclick="demo(examp2)">&nbsp;&nbsp;&nbsp;Run&nbsp;&nbsp;&nbsp;</a>
+			</div>
+		</div>
+
+		<h3>Camera Status</h3>
+
+		<p>The current status of the camera can be requested using <b>LoadStatus</b>.  The camera status will be returned as a JSON object via a callback passed to LoadStatus, and includes information about the camera, including the current mode, battery level, video mode, photo mode, etc.</p>
+		
+		<div data-role="collapsible" data-collapsed="true" data-mini="true" data-theme="a" data-content-theme="b">
+				<h3>Example - Load Camera Status</h3>
+				<div id="examp3" style="font-size:70%">
+					app.LoadPlugin( "GoProController" );<br>
+					<br>
+					function OnStart()<br>
+					{<br>
+					 &nbsp;&nbsp;lay = app.CreateLayout( "Linear", "VCenter,FillXY" );<br><br>
+					 &nbsp;&nbsp;btn = app.CreateButton( "Load Camera Status" );<br>				
+					 &nbsp;&nbsp;btn.SetOnTouch( LoadStatus );<br>
+					 &nbsp;&nbsp;lay.AddChild( btn );<br>
+					 <br>
+					 &nbsp;&nbsp;app.AddLayout( lay );<br>
+					 <br>
+					 &nbsp;&nbsp;gopro = app.CreateObject( "GoProController" );<br>
+					 &nbsp;&nbsp;gopro.Connect( "10.5.5.9" );<br>
+					}<br>
+					<br>
+					function LoadStatus()<br>
+					{<br>
+					&nbsp;&nbsp;gopro.LoadStatus( gopro_OnStatusLoaded );<br>
+					}<br><br>
+					function gopro_OnStatusLoaded( status )<br>
+					{<br>
+					&nbsp;&nbsp;statusMsg = "";<br>
+					&nbsp;&nbsp;for( var item in status )<br>
+        			&nbsp;&nbsp;{<br>
+            		&nbsp;&nbsp;&nbsp;statusMsg = statusMsg + item + ":" + status[item] + ",\n";<br>
+        			&nbsp;&nbsp;}<br>
+					&nbsp;&nbsp;app.ShowPopup( statusMsg );<br>
+					}
+				</div>
+				<div name="divCopy" align="right">
+				<a href="#" data-role="button" data-mini="true" data-inline="true" onclick="copy(examp3)">Copy All</a>
+				<a href="#" data-role="button" data-mini="true" data-inline="true" onclick="demo(examp3)">&nbsp;&nbsp;&nbsp;Run&nbsp;&nbsp;&nbsp;</a>
+				</div>
+		</div>
+
+		<p>The following table shows the complete list properties available in the status JSON object:</p>
+
+		<div data-role="collapsible" data-collapsed="true" data-mini="true" data-theme="a" data-content-theme="b">
+			<h3>Camera Status Property List</h3>
+			<table data-role="table" data-mode="reflow" class="table-stripe ui-responsive">
+				<tbody>
+					<tr>
+						<th>AutoPowerOff</th>
+						<td>Auto power off duration in seconds</td>
+					</tr>
+					<tr>
+						<th>BatteryLevel</th>
+						<td>Battery level, 0 - 100</td>
+					</tr>
+					<tr>
+						<th>BeepVolume</th>
+						<td>Camera beep volume</td>
+					</tr>
+					<tr>
+						<th>BurstRate</th>
+						<td>Photo burst rate</td>
+					</tr>
+					<tr>
+						<th>BurstRecording</th>
+						<td>Indicates if the camera is currently taking a photo burst</td>
+					</tr>
+					<tr>
+						<th>CameraMode</th>
+						<td>Current camera mode</td>
+					</tr>
+					<tr>
+						<th>DefaultCameraMode</th>
+						<td>Startup camera mode</td>
+					</tr>
+					<tr>
+						<th>LEDs</th>
+						<td>Indicates how many of the status indicator lights are active</td>
+					</tr>
+					<tr>
+						<th>Locate</th>
+						<td>Indicates if the camera is currently Locating (See the Locate Mode section)</td>
+					</tr>
+					<tr>
+						<th>Orientation</th>
+						<td>Camera orientation</td>
+					</tr>
+					<tr>
+						<th>OSD</th>
+						<td>Indicates if the On Screen Display is on</td>
+					</tr>
+					<tr>
+						<th>PhotoCount</th>
+						<td>Number of photos taken</td>
+					</tr>
+					<tr>
+						<th>PhotoMode</th>
+						<td>Photo mode, includes the resolution and field of view, e.g. 5mpWide</td>
+					</tr>
+					<tr>
+						<th>PhotosAvailable</th>
+						<td>Number of photos available to take</td>
+					</tr>
+					<tr>
+						<th>Protune</th>
+						<td>Indicates if Protune mode on</td>
+					</tr>
+					<tr>
+						<th>SDCard</th>
+						<td>Indicates if there is currently an SD card in the camera</td>
+					</tr>
+					<tr>
+						<th>SpotMeter</th>
+						<td>Indicates if the spot meter is on</td>
+					</tr>
+					<tr>
+						<th>TimelapseInterval</th>
+						<td>Timelapse interval in seconds</td>
+					</tr>
+					<tr>
+						<th>VideoAvailableTime</th>
+						<td>Time in seconds remaining for video</td>
+					</tr>
+					<tr>
+						<th>VideoCount</th>
+						<td>Number of videos recorded</td>
+					</tr>
+					<tr>
+						<th>VideoFOV</th>
+						<td>Video field of view</td>
+					</tr>
+					<tr>
+						<th>VideoFPS</th>
+						<td>Video framerate</td>
+					</tr>
+					<tr>
+						<th>VideoMode</th>
+						<td>Video mode, e.g. 720, 1080, etc</td>
+					</tr>
+					<tr>
+						<th>VideoStandard</th>
+						<td>PAL or NTSC</td>
+					</tr>
+					<tr>
+						<th>VideoRecording</th>
+						<td>Indicates if video is currently recording</td>
+					</tr>
+					<tr>
+						<th>VideoRecordingTime</th>
+						<td>Duration in seconds of the currently recording video</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<p>The camera mode, for example, can be accessed from the status JSON object as follows:</p>
+
+		<div class="samp">&nbsp;cameraMode = statusJSON.CameraMode;</div>
+
+		<h3>Changing Camera Options</h3>
+
+		<p>A subset of the camera properties described above are settable using <b>SetOptions</b>. SetOptions takes a JSON object containing one or more properties to be set.</p>
+
+		<div data-role="collapsible" data-collapsed="true" data-mini="true" data-theme="a" data-content-theme="b">
+				<h3>Example - Set Camera Mode</h3>
+				<div id="examp4" style="font-size:70%">
+					app.LoadPlugin( "GoProController" );<br>
+					<br>
+					function OnStart()<br>
+					{<br>
+					 &nbsp;&nbsp;lay = app.CreateLayout( "Linear", "VCenter,FillXY" );<br><br>
+					 &nbsp;&nbsp;modeSpin = app.CreateSpinner( "Video,Photo,Burst,Timelapse", 0.5 );<br>
+   					 &nbsp;&nbsp;modeSpin.SetOnTouch( modeSpin_OnChange );<br>
+					 &nbsp;&nbsp;lay.AddChild( modeSpin );<br>
+					 <br>
+					 &nbsp;&nbsp;app.AddLayout( lay );<br>
+					 <br>
+					 &nbsp;&nbsp;gopro = app.CreateObject( "GoProController" );<br>
+					 &nbsp;&nbsp;gopro.Connect( "10.5.5.9" );<br>
+					}<br>
+					<br>
+					function modeSpin_OnChange( mode )<br>
+					{<br>
+					&nbsp;&nbsp;var options = {<br>
+        			&nbsp;&nbsp;&nbsp;&nbsp;CameraMode: mode<br>
+    				&nbsp;&nbsp;};<br>
+    				<br>
+   					&nbsp;&nbsp;gopro.SetOptions(options);<br>
+					}
+				</div>
+				<div name="divCopy" align="right">
+				<a href="#" data-role="button" data-mini="true" data-inline="true" onclick="copy(examp4)">Copy All</a>
+				<a href="#" data-role="button" data-mini="true" data-inline="true" onclick="demo(examp4)">&nbsp;&nbsp;&nbsp;Run&nbsp;&nbsp;&nbsp;</a>
+				</div>
+		</div>
+
+		<div data-role="collapsible" data-collapsed="true" data-mini="true" data-theme="a" data-content-theme="b">
+				<h3>Example - Turn Protune On/Off</h3>
+				<div id="examp5" style="font-size:70%">
+					app.LoadPlugin( "GoProController" );<br>
+					<br>
+					function OnStart()<br>
+					{<br>
+					 &nbsp;&nbsp;lay = app.CreateLayout( "Linear", "VCenter,FillXY" );<br><br>
+					 &nbsp;&nbsp;btnProtuneOn = app.CreateButton( "Protune On" );<br>				
+					 &nbsp;&nbsp;btnProtuneOn.SetOnTouch( ProtuneOn );<br>
+					 &nbsp;&nbsp;lay.AddChild( btnProtuneOn );<br><br>
+					 &nbsp;&nbsp;btnProtuneOff = app.CreateButton( "Protune Off" );<br>				
+					 &nbsp;&nbsp;btnProtuneOff.SetOnTouch( ProtuneOff );<br>
+					 &nbsp;&nbsp;lay.AddChild( btnProtuneOff );<br>
+					 <br>
+					 &nbsp;&nbsp;gopro = app.CreateObject( "GoProController" );<br>
+					 &nbsp;&nbsp;gopro.Connect( "10.5.5.9" );<br>
+					 <br>
+					 &nbsp;&nbsp;app.AddLayout( lay );<br>
+					}<br>
+					<br>
+					function ProtuneOn()<br>
+					{<br>
+					&nbsp;&nbsp;var options = {<br>
+        			&nbsp;&nbsp;&nbsp;&nbsp;Protune: "On"<br>
+    				&nbsp;&nbsp;};<br>
+    				<br>
+   					&nbsp;&nbsp;gopro.SetOptions(options);<br>
+					}<br><br>
+					function ProtuneOff()<br>
+					{<br>
+					&nbsp;&nbsp;var options = {<br>
+        			&nbsp;&nbsp;&nbsp;&nbsp;Protune: "Off"<br>
+    				&nbsp;&nbsp;};<br>
+    				<br>
+   					&nbsp;&nbsp;gopro.SetOptions(options);<br>
+					}
+				</div>
+				<div name="divCopy" align="right">
+				<a href="#" data-role="button" data-mini="true" data-inline="true" onclick="copy(examp5)">Copy All</a>
+				<a href="#" data-role="button" data-mini="true" data-inline="true" onclick="demo(examp5)">&nbsp;&nbsp;&nbsp;Run&nbsp;&nbsp;&nbsp;</a>
+				</div>
+		</div>
+
+		<p>The following table shows the complete list of settable camera options and their possible values:</p>
+
+		<div data-role="collapsible" data-collapsed="true" data-mini="true" data-theme="a" data-content-theme="b">
+			<h3>Camera Options List</h3>
+			<table data-role="table" data-mode="reflow" class="table-stripe ui-responsive">
+				<tbody>
+					<tr>
+						<th>AutoPowerOff</th>
+						<td>Never, 60, 120, 300 (seconds)</td>
+					</tr>
+					<tr>
+						<th>BeepVolume</th>
+						<td>0, 70, 100</td>
+					</tr>
+					<tr>
+						<th>BurstRate</th>
+						<td>3/1s, 5/1s, 10/1s, 10/2s, 30/1s, 30/2s, 30/3s</td>
+					</tr>
+					<tr>
+						<th>CameraMode</th>
+						<td>Video, Photo, Burst, Timelapse</td>
+					</tr>
+					<tr>
+						<th>DefaultCameraMode</th>
+						<td>Video, Photo, Burst, Timelapse</td>
+					</tr>
+					<tr>
+						<th>LEDs</th>
+						<td>Off, 2, 4</td>
+					</tr>
+					<tr>
+						<th>Orientation</th>
+						<td>Up, Down</td>
+					</tr>
+					<tr>
+						<th>OSD</th>
+						<td>On, Off</td>
+					</tr>
+					<tr>
+						<th>PhotoMode</th>
+						<td>5mpWide, 5mpMedium, 7mpWide, 7mpMedium, 8mpMedium, 11mpWide, 12mpWide</td>
+					</tr>
+					<tr>
+						<th>Protune</th>
+						<td>On, Off</td>
+					</tr>
+					<tr>
+						<th>SpotMeter</th>
+						<td>On, Off</td>
+					</tr>
+					<tr>
+						<th>TimelapseInterval</th>
+						<td>0.5, 1, 2, 5, 10, 20, 60 (seconds)</td>
+					</tr>
+					<tr>
+						<th>VideoFOV</th>
+						<td>Wide, Medium, Narrow</td>
+					</tr>
+					<tr>
+						<th>VideoFPS</th>
+						<td>12, 15, 12.5, 24, 25, 30, 48, 50, 60, 100, 120, 240</td>
+					</tr>
+					<tr>
+						<th>VideoMode</th>
+						<td>WVGA, 720, 960, 1080, 1440, 2.7k, 4K, 2.7KCinema, 4KCinema, 720SuperView, 1080SuperView</td>
+					</tr>
+					<tr>
+						<th>VideoStandard</th>
+						<td>PAL, NTSC</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<p>It is important to note that the above table shows an exhaustive list of values for each option.  Not all GoPro models support all of these values, and the availability of certain values are dependent on the values of other options.  For example, the VideoStandard option (PAL or NTSC) determines which VideoFPS values are available, and the available VideoModes are dependent on whether Protune is On or Off.  See the GoPro user manuals for more details.</p>
+
+		<p>The GoPro model can be queried using <b>GetModel</b> which returns the model name in the form <i>"HERO3 Silver Edition"</i>:</p>
+
+		<div class="samp">&nbsp;app.ShowPopup(gopro.GetModel());</div>
+
+		<h3>Turning the Camera On and Off</h3>
+
+		<p>The GoPro camera can be turned on and off independently of the GoPro's Wifi hotspot.  When the camera is turned off, the camera methods, such as StartShutter, StopShutter, LoadStatus, SetOptions, are unavailable.  Use the <b>IsPowerOn</b> method to determine if the camera is currently turned on or off.  The camera can be turned on remotely using the <b>PowerOn</b> method like this:</p>
+
+		<div class="samp">
+		&nbsp;if( !gopro.IsPowerOn() )<br>
+		&nbsp;&nbsp;gopro.PowerOn();<br>
+		</div>
+
+		<p>When the camera is fully powered on and ready to receive commands, the <b>OnReady</b> callback will be called.  The OnReady callback can be set using the <b>SetOnReady</b> method.  If the camera is turned on when Connect is called, the OnReady callback will be called after the OnConnect callback.</p>
+
+		<div data-role="collapsible" data-collapsed="true" data-mini="true" data-theme="a" data-content-theme="b">
+				<h3>Example - Turn Camera On/Off</h3>
+				<div id="examp6" style="font-size:70%">
+					app.LoadPlugin( "GoProController" );<br>
+					<br>
+					function OnStart()<br>
+					{<br>
+					 &nbsp;&nbsp;lay = app.CreateLayout( "Linear", "VCenter,FillXY" );<br><br>
+					 &nbsp;&nbsp;btnPowerOn = app.CreateButton( "Power On" );<br>				
+					 &nbsp;&nbsp;btnPowerOn.SetOnTouch( PowerOn );<br>
+					 &nbsp;&nbsp;lay.AddChild( btnPowerOn );<br><br>
+					 &nbsp;&nbsp;btnPowerOff = app.CreateButton( "Power Off" );<br>				
+					 &nbsp;&nbsp;btnPowerOff.SetOnTouch( PowerOff );<br>
+					 &nbsp;&nbsp;lay.AddChild( btnPowerOff );<br>
+					 <br>
+					 &nbsp;&nbsp;app.AddLayout( lay );<br>
+					 <br>
+					 &nbsp;&nbsp;gopro = app.CreateObject( "GoProController" );<br>
+					 &nbsp;&nbsp;gopro.SetOnConnect( OnConnect );<br>
+					 &nbsp;&nbsp;gopro.SetOnReady( OnReady );<br>
+					 &nbsp;&nbsp;gopro.Connect( "10.5.5.9" );<br>
+					}<br>
+					<br>
+					function OnConnect()<br>
+					{<br>
+					&nbsp;&nbsp;app.ShowPopup("Connected!");<br>
+					}<br><br>
+					function OnReady()<br>
+					{<br>
+					&nbsp;&nbsp;app.ShowPopup("Ready!");<br>
+					}<br><br>
+					function PowerOn()<br>
+					{<br>
+					&nbsp;&nbsp;gopro.PowerOn();<br>
+					}<br><br>
+					function PowerOff()<br>
+					{<br>
+					&nbsp;&nbsp;gopro.PowerOff();<br>
+					}
+				</div>
+				<div name="divCopy" align="right">
+				<a href="#" data-role="button" data-mini="true" data-inline="true" onclick="copy(examp6)">Copy All</a>
+				<a href="#" data-role="button" data-mini="true" data-inline="true" onclick="demo(examp6)">&nbsp;&nbsp;&nbsp;Run&nbsp;&nbsp;&nbsp;</a>
+				</div>
+		</div>
+
+		<h3>Locate Mode</h3>
+
+		<p>When the GoPro is in Locate Mode, it's LEDs flash and it beeps.  To put the GoPro in Locate Mode, call the <b>StartLocate</b> method, and to turn it off, call the <b>StopLocate</b> method.</p>
+		
+	</div><!-- /content -->
+
+	<!-- Scripts in the head element are ignored, make sure page specific scripts are in the page element -->
+	<script type="text/javascript">
+		// Override link clicks to open in another browser
+	    document.onclick = function (e) {
+
+	    	if(navigator.userAgent.indexOf("Android") > -1) // If running on Android
+	    	{
+				e = e ||  window.event;
+				var element = e.target || e.srcElement;
+
+				if(element.id == 'extLink') 
+				{
+			    	app.OpenUrl(element.href);
+			    	return false; // prevent default action and stop event propagation
+			  	}
+			}
+		};
+	</script>
+
+	<style type="text/css">
+    	/* Add alternating row stripes */
+		.table-stripe tbody tr:nth-child(odd) td,
+		.table-stripe tbody tr:nth-child(odd) th {
+			background-color: rgba(0,0,0,0.04);
+		}
+		/* Add stroke to the header and last item */
+		.table-stripe thead th,
+		.table-stripe tbody tr:last-child {
+		 	border-bottom: 1px solid rgba(0, 0, 0, .1);
+		}
+		table {
+			border-collapse: collapse;
+			width: 100%;
+		}
+		tbody th {
+			text-align: left;
+		}
+		tbody td, th {
+			padding: 0.25em;
+		}
+    </style>
+	
+</div><!-- /page -->
+
+</body>
+</html>
