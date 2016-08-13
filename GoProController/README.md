@@ -1,4 +1,4 @@
-# GoProController Plugin
+# GoProController Plugin.
 
 The GoProController plugin enables remote control of GoPro cameras from DroidScript apps. With this plugin, you can control the camera shutter and change the cameras options.
 
